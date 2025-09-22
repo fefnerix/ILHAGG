@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contagem Decrescente para a Passagem de Ano em Ilha Grande</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Elfsight Audio Player Script removido -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            z-index: 1;
+            overflow-x: hidden; /* Evita barras de rolagem indesejadas */
+            overflow-y: auto;
+        }
+        
+        /* CSS para o botão de música e leitor invisível foi REMOVIDO */
+        
+        /* Animação para o vídeo surgir focado e sem 'flash' inicial */
+        @keyframes fadeInUnblur {
+            from {
+                filter: blur(15px);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            to {
+                filter: blur(0px);
+                opacity: 1;
+            }
+        }
+
+        /* Container do vídeo de fundo do YouTube */
+        #bg-youtube-iframe {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 56.25vw; /* 16:9 Aspect Ratio */
+            min-height: 100vh;
+            min-width: 177.77vh; /* 16:9 Aspect Ratio */
+            transform: translate(-50%, -50%);
+            z-index: -2;
+            pointer-events: none; /* Desativa interação com o vídeo de fundo */
+            animation: fadeInUnblur 3s ease-out forwards; /* Aplica a animação de foco e fade-in */
+        }
+
+        /* Overlay escuro para melhorar a legibilidade do texto */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        /* Efeito de vidro fosco (Glassmorphism) para as caixas do cronómetro */
+        .timer-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); /* Suporte para Safari */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-grow: 1; /* Faz as caixas crescerem para preencher o espaço */
+        }
+        
+        /* Sombra no texto para destacar do fundo */
+        .text-shadow {
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Animação de "flip" na atualização dos números */
+        .time-value {
+            transition: transform 0.2s ease-in-out;
+        }
+        .time-value.updated {
+            transform: scaleY(0.95);
+        }
+    </style>
+</head>
+<body class="text-white flex items-center justify-center min-h-screen p-4 py-12">
+
+    <!-- Vídeo de Fundo do YouTube -->
+    <iframe 
+        id="bg-youtube-iframe" 
+        src="https://www.youtube.com/embed/DsRMi6vEAQk?autoplay=1&mute=1&loop=1&playlist=DsRMi6vEAQk&controls=0&showinfo=0&modestbranding=1&iv_load_policy=3&playsinline=1" 
+        frameborder="0" 
+        allow="autoplay; encrypted-media" 
+        allowfullscreen>
+    </iframe>
+    
+    <div class="text-center w-full max-w-4xl z-10">
+        <!-- Logotipo da Marca -->
+        <div class="mx-auto mb-4 h-16 w-16 text-yellow-300">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-full w-full">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+            </svg>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 text-yellow-300 text-shadow">Contagem para o Réveillon</h1>
+        <p class="text-base sm:text-lg md:text-xl text-gray-200 mb-8 text-shadow">Faltam...</p>
+
+        <div id="countdown" class="flex flex-wrap justify-center gap-2 sm:gap-4">
+            <!-- Meses -->
+            <div class="timer-box p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl text-center">
+                <span id="months" class="text-3xl sm:text-5xl md:text-6xl font-bold time-value text-shadow">0</span>
+                <span class="block text-xs uppercase tracking-widest text-gray-300 mt-1 text-shadow">Meses</span>
+            </div>
+            <!-- Dias -->
+            <div class="timer-box p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl text-center">
+                <span id="days" class="text-3xl sm:text-5xl md:text-6xl font-bold time-value text-shadow">0</span>
+                <span class="block text-xs uppercase tracking-widest text-gray-300 mt-1 text-shadow">Dias</span>
+            </div>
+            <!-- Horas -->
+            <div class="timer-box p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl text-center">
+                <span id="hours" class="text-3xl sm:text-5xl md:text-6xl font-bold time-value text-shadow">0</span>
+                <span class="block text-xs uppercase tracking-widest text-gray-300 mt-1 text-shadow">Horas</span>
+            </div>
+            <!-- Minutos -->
+            <div class="timer-box p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl text-center">
+                <span id="minutes" class="text-3xl sm:text-5xl md:text-6xl font-bold time-value text-shadow">0</span>
+                <span class="block text-xs uppercase tracking-widest text-gray-300 mt-1 text-shadow">Minutos</span>
+            </div>
+            <!-- Segundos -->
+            <div class="timer-box p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl text-center">
+                <span id="seconds" class="text-3xl sm:text-5xl md:text-6xl font-bold time-value text-shadow">0</span>
+                <span class="block text-xs uppercase tracking-widest text-gray-300 mt-1 text-shadow">Segundos</span>
+            </div>
+             <!-- Milissegundos -->
+            <div class="timer-box p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl text-center">
+                <span id="milliseconds" class="text-3xl sm:text-5xl md:text-6xl font-bold time-value text-shadow">000</span>
+                <span class="block text-xs uppercase tracking-widest text-gray-300 mt-1 text-shadow">Milésimos</span>
+            </div>
+        </div>
+
+        <!-- Leitor de Playlist do Spotify Visível -->
+        <div class="mt-12 w-full max-w-lg mx-auto">
+            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5DYnF7ih8nGcQpAx71RgsU?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+        
+        <div id="finished-message" class="hidden mt-8 text-2xl font-bold text-green-400 text-shadow">
+            Está na hora de viajar!
+        </div>
+    </div>
+    
+    <!-- Botão de Controlo de Música REMOVIDO -->
+    
+    <footer class="absolute bottom-4 right-4 text-xs text-gray-400 text-shadow z-10">
+        <p>Dev by @fefneri</p>
+    </footer>
+
+    <script>
+        // --- Elementos do Cronómetro ---
+        const monthsEl = document.getElementById('months');
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const millisecondsEl = document.getElementById('milliseconds');
+        const countdownEl = document.getElementById('countdown');
+        const finishedMessageEl = document.getElementById('finished-message');
+
+        // Define a data alvo
+        const now = new Date();
+        const targetDate = new Date(now.getFullYear(), 11, 29); // 11 representa Dezembro (0-11)
+        
+        // Se a data alvo já passou este ano, define para o próximo ano
+        if (now > targetDate) {
+            targetDate.setFullYear(now.getFullYear() + 1);
+        }
+
+        // Função para animar a atualização do valor
+        function updateValue(element, value) {
+            if (element.innerText !== value) {
+                element.innerText = value;
+                element.classList.add('updated');
+                setTimeout(() => {
+                    element.classList.remove('updated');
+                }, 200);
+            }
+        }
+
+        function updateCountdown() {
+            const currentDate = new Date();
+            const totalMilliseconds = targetDate - currentDate;
+
+            if (totalMilliseconds <= 0) {
+                clearInterval(countdownInterval);
+                countdownEl.style.display = 'none';
+                finishedMessageEl.classList.remove('hidden');
+                return;
+            }
+
+            // --- Lógica para Meses e Dias ---
+            let tempDate = new Date(currentDate);
+            let months = 0;
+            let days = 0;
+            
+            months = (targetDate.getFullYear() - currentDate.getFullYear()) * 12;
+            months -= currentDate.getMonth();
+            months += targetDate.getMonth();
+            
+            if (currentDate.getDate() > targetDate.getDate()) {
+                months--;
+                const daysInLastMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0).getDate();
+                days = daysInLastMonth - currentDate.getDate() + targetDate.getDate();
+            } else {
+                days = targetDate.getDate() - currentDate.getDate();
+            }
+            
+            if (months < 0) months = 0;
+
+            // --- Lógica para Horas, Minutos, Segundos ---
+            const hours = Math.floor((totalMilliseconds / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((totalMilliseconds / 1000 / 60) % 60);
+            const seconds = Math.floor((totalMilliseconds / 1000) % 60);
+            const milliseconds = Math.floor(totalMilliseconds % 1000);
+
+            // Atualiza o HTML com os valores formatados
+            updateValue(monthsEl, String(months));
+            updateValue(daysEl, String(days));
+            updateValue(hoursEl, String(hours).padStart(2, '0'));
+            updateValue(minutesEl, String(minutes).padStart(2, '0'));
+            updateValue(secondsEl, String(seconds).padStart(2, '0'));
+            updateValue(millisecondsEl, String(milliseconds).padStart(3, '0'));
+        }
+
+        // Inicia o cronómetro
+        const countdownInterval = setInterval(updateCountdown, 10);
+        updateCountdown();
+
+    </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
